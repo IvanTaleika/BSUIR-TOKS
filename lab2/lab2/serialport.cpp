@@ -1,5 +1,10 @@
 #include "serialport.h"
 
+const QByteArray SerialPort::FIRST_BYTE = QByteArrayLiteral("\x7e");
+const QByteArray SerialPort::ESCAPE_BYTE = QByteArrayLiteral("\x7d");
+const QByteArray SerialPort::FIRST_REPLACEMENT = QByteArrayLiteral("\x7d\x5e");
+const QByteArray SerialPort::ESCAPE_REPLACEMENT = QByteArrayLiteral("\x7d\x5d");
+
 SerialPort::SerialPort(QObject* parent) : QSerialPort(parent) {
 }
 
