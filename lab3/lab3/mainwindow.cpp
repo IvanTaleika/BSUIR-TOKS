@@ -73,9 +73,12 @@ void MainWindow::handleError(QSerialPort::SerialPortError error) {
 
 void MainWindow::sendData() {
   QString message = ui->userText->toPlainText();
-  serial->writePackage(message.toUtf8());
+  if (ui->corruptResultBox->isChecked()) {
+    serial->writeCorruptedPackage(message.toUtf8());
+  } else {
+    serial->writePackage(message.toUtf8());
+  }
   ui->outputWindow->append("<sended>: " + message);
-
   ui->userText->clear();
 }
 

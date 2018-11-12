@@ -1,5 +1,4 @@
 #include "serialport.h"
-
 const QByteArray SerialPort::FIRST_BYTE = QByteArrayLiteral("\x7e");
 const QByteArray SerialPort::ESCAPE_BYTE = QByteArrayLiteral("\x7d");
 const QByteArray SerialPort::FIRST_REPLACEMENT = QByteArrayLiteral("\x7d\x5e");
@@ -9,6 +8,7 @@ const QString SerialPort::CRC8 = "100011011";
 
 
 SerialPort::SerialPort(QObject* parent) : QSerialPort(parent) {
+  qsrand(QTime::currentTime().msec());
 }
 
 QByteArray SerialPort::readPackage() {
@@ -20,11 +20,23 @@ QByteArray SerialPort::readPackage() {
 }
 
 qint64 SerialPort::writePackage(QByteArray array) {
+  pack(array);
+  return QSerialPort::write(array);
+}
+
+qint64 SerialPort::writeCorruptedPackage(QByteArray array) {
+  pack(array);
+  auto pos = qrand() % array.size();
+  char value = array.at(pos) + 1;
+  array.replace(pos, 1, QByteArray(1, value));
+  return QSerialPort::write(array);
+}
+
+void SerialPort::pack(QByteArray& array) {
   QString bitString = toBitString(array);
   bitString.append(QString("%1").arg(0, CRC8.size() - 1, 2, QChar('0')));
   array.append(calcCrc(bitString));
   code(array);
-  return QSerialPort::write(array);
 }
 
 void SerialPort::code(QByteArray& array) {
@@ -51,6 +63,7 @@ QString SerialPort::toBitString(QByteArray& array) {
   bitStr.remove(0, bitStr.indexOf('1'));
   return bitStr;
 }
+
 
 int SerialPort::calcCrc(QString bitString) {
   bool ok;
