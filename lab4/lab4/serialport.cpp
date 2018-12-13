@@ -35,6 +35,9 @@ void SerialPort::validateSentData(QByteArray& array) {
       unsigned long delay = qrand() % static_cast<unsigned long>(qPow(2, sentData.nTries));
       emit sendError(tr("Collision found. Trying to fix the error. Try %1, delay %2").arg(sentData.nTries).arg(delay));
       QThread::msleep(delay);
+      if (delay % 2 == 0) {
+        array.replace(array.size() - 1, 1, QByteArrayLiteral("\x0"));
+      }
       QSerialPort::write(array);
       return;
     } else {

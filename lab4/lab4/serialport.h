@@ -4,7 +4,6 @@
 #include <QTime>
 #include <QThread>
 #include <QtMath>
-#include "serialportexception.h"
 
 
 class SerialPort : public QSerialPort {

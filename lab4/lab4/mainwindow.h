@@ -3,7 +3,6 @@
 
 #include "settingsdialog.h"
 #include "serialport.h"
-#include "serialportexception.h"
 
 #include <QMainWindow>
 #include <QLabel>

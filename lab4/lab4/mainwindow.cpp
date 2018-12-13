@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget* parent) :
   ui->collisionComboBox->setItemData(1, QVariant(2));
   ui->collisionComboBox->setItemData(2, QVariant(4));
   serial = new SerialPort(this);
-  settings = new SettingsDialog;
+  settings = new SettingsDialog(this);
   ui->actionDisconnect->setEnabled(false);
   status = new QLabel;
   ui->statusBar->addWidget(status);

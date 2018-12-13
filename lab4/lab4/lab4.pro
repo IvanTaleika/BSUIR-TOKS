@@ -21,14 +21,12 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     settingsdialog.cpp \
-    serialport.cpp \
-    serialportexception.cpp
+    serialport.cpp
 
 HEADERS += \
         mainwindow.h \
     settingsdialog.h \
-    serialport.h \
-    serialportexception.h
+    serialport.h
 
 
 FORMS += \
