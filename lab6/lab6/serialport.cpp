@@ -190,7 +190,7 @@ void SerialPort::timerFired(int i) {
     nTries++;
     std::get<0>(*tuple) = nTries;
     QSerialPort::write(std::get<2>(*tuple));
-    emit eventMessage(tr("Timer fired for %1 times for \"%2\"").arg(nTries).arg(i));
+    emit eventMessage(tr("Timer fired %1 times for \"%2\"").arg(nTries).arg(i));
   } else {
     auto timer = std::get<1>(*tuple);
     timer->stop();
