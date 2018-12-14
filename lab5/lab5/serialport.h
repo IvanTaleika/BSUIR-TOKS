@@ -10,7 +10,6 @@ class SerialPort : public QSerialPort {
   Q_OBJECT
 
  public:
-  static constexpr int CORRUPTED = 1;
 
   SerialPort(QObject* parent = nullptr);
   bool getIsPowered() const;
@@ -49,7 +48,7 @@ class SerialPort : public QSerialPort {
   static const QString CRC8;
   bool isPowered;
   bool isDeleteMarker;
-  QList < QPair<int, QByteArray>> sendingMessages;
+  QList <QPair<int, QByteArray>> sendingMessages;
   int priority;
   QByteArray cachedFrame;
 
