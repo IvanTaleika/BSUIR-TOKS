@@ -112,12 +112,6 @@ void SerialPort::writePackage(QByteArray array, int flags) {
   if (flags & PACKAGE_SHUFFLE) {
     std::random_shuffle(messageTuples.begin(), messageTuples.end());
   }
-  if (flags & PACKAGE_LOSS) {
-    auto nRemoving = qrand() % messageTuples.size();
-    for (int i = 0; i < nRemoving; i++) {
-      messageTuples.removeAt(qrand() % messageTuples.size());
-    }
-  }
   if (flags & CORRUPTED) {
     auto nCorruption = qrand() % messageTuples.size();
     for (int i = 0; i < nCorruption; i++) {
@@ -132,9 +126,11 @@ void SerialPort::writePackage(QByteArray array, int flags) {
     auto message = std::get<2>(tuple);
     auto timer = std::get<1>(tuple);
     sentMessages.insert(sn, std::make_tuple(0, timer, message));
-    emit eventMessage(tr("Sending: %1").arg((int) sn));
-    QSerialPort::write(message);
-    SerialPort::flush();
+    if ((flags & PACKAGE_LOSS) && qrand() % 2) {
+      emit eventMessage(tr("Sending: %1").arg((int) sn));
+      QSerialPort::write(message);
+      SerialPort::flush();
+    }
     timer->start(WAIT_TIME);
   }
 
