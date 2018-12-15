@@ -25,6 +25,7 @@ class SerialPort : public QSerialPort {
   void dataSent(QByteArray data);
   void dataRead(QByteArray data);
   void eventMessage(QString message);
+  void sendToNext(QByteArray data);
 
  private:
 

@@ -5,6 +5,7 @@ MainWindow::MainWindow(QWidget* parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow) {
   qRegisterMetaType<QIODevice::OpenMode>("QIODevice::OpenMode");
+  qRegisterMetaType<QIODevice::OpenMode>("QIODevice::OpenMode");
   qRegisterMetaType<QSerialPort::SerialPortError>("QSerialPort::SerialPortError");
   ui->setupUi(this);
   settings = new SettingsDialog(this);
@@ -13,9 +14,10 @@ MainWindow::MainWindow(QWidget* parent) :
   ui->statusBar->addWidget(status);
   ui->sendButton->setEnabled(false);
   initActionsConnections();
-  serial = new SerialPort();
-  serial->moveToThread(&serialThread);
-  connect(&serialThread, &QThread::finished, serial, &QObject::deleteLater);
+  readPort = new SerialPort();
+  writePort = new QSerialPort();
+  readPort->moveToThread(&serialThread);
+  connect(&serialThread, &QThread::finished, readPort, &QObject::deleteLater);
   initPortConnections();
   serialThread.start();
 }
@@ -29,12 +31,19 @@ MainWindow::~MainWindow() {
 
 void MainWindow::openSerialPort() {
   SettingsDialog::Settings p = settings->settings();
-  serial->setPortName(p.name);
-  serial->setBaudRate(p.baudRate);
-  serial->setDataBits(p.dataBits);
-  serial->setParity(p.parity);
-  serial->setStopBits(p.stopBits);
-  serial->setFlowControl(p.flowControl);
+  openPort(readPort, p.name1, p);
+  emit openReadSerial(QIODevice::ReadWrite);
+  openPort(writePort, p.name, p);
+  emit openWriteSerial(QIODevice::ReadWrite);
+}
+
+void MainWindow::openPort(QSerialPort* port, QString name, SettingsDialog::Settings p) {
+  port->setPortName(name);
+  port->setBaudRate(p.baudRate);
+  port->setDataBits(p.dataBits);
+  port->setParity(p.parity);
+  port->setStopBits(p.stopBits);
+  port->setFlowControl(p.flowControl);
   ui->actionConnect->setEnabled(false);
   ui->actionDisconnect->setEnabled(true);
   ui->actionConfigure->setEnabled(false);
@@ -42,11 +51,12 @@ void MainWindow::openSerialPort() {
                     .arg(p.name).arg(p.stringBaudRate).arg(p.stringDataBits)
                     .arg(p.stringParity).arg(p.stringStopBits).arg(p.stringFlowControl));
   ui->sendButton->setEnabled(true);
-  emit openSerial(QIODevice::ReadWrite);
 }
 
+
+
 void MainWindow::closeSerialPort() {
-  if (serial->isOpen()) {
+  if (readPort->isOpen()) {
     emit closeSerial();
   }
   ui->actionConnect->setEnabled(true);
@@ -71,7 +81,7 @@ void MainWindow::showMessage(QString message) {
 
 void MainWindow::handleError(QSerialPort::SerialPortError error) {
   if (error != QSerialPort::NoError) {
-    QMessageBox::warning(this, tr("Critical Error #%1").arg(error), serial->errorString());
+    QMessageBox::warning(this, tr("Critical Error #%1").arg(error), readPort->errorString());
     closeSerialPort();
   }
 }
@@ -82,6 +92,10 @@ void MainWindow::sendData() {
                      ui->corruptResultBox->isChecked());
     ui->userText->clear();
   }
+}
+
+void MainWindow::witeToNext(QByteArray data) {
+  writePort->write(data);
 }
 
 void MainWindow::initActionsConnections() {
@@ -95,17 +109,21 @@ void MainWindow::initActionsConnections() {
 
 
 void MainWindow::initPortConnections() {
-  connect(serial, &SerialPort::errorOccurred, this, &MainWindow::handleError);
-  connect(serial, &SerialPort::dataRead, this, &MainWindow::dataRead);
-  connect(serial, &SerialPort::dataSent, this, &MainWindow::dataSent);
-  connect(serial, &SerialPort::eventMessage, this, &MainWindow::showMessage);
-  connect(this, &MainWindow::sendingData, serial, &SerialPort::sendData);
-  connect(ui->sendMarkerButton, &QPushButton::clicked, serial, &SerialPort::sendMarker);
-  connect(this, &MainWindow::openSerial, serial, &SerialPort::open);
-  connect(this, &MainWindow::closeSerial, serial, &SerialPort::close);
-  connect(ui->powerCheckbox, &QCheckBox::stateChanged, serial, &SerialPort::setIsPowered);
-  connect(ui->deleteMarkerCheckbox, &QCheckBox::stateChanged, serial, &SerialPort::setIsDeleteMarker);
+  connect(readPort, &SerialPort::errorOccurred, this, &MainWindow::handleError);
+  connect(readPort, &SerialPort::dataRead, this, &MainWindow::dataRead);
+  connect(readPort, &SerialPort::dataSent, this, &MainWindow::dataSent);
+  connect(readPort, &SerialPort::eventMessage, this, &MainWindow::showMessage);
+  connect(this, &MainWindow::sendingData, readPort, &SerialPort::sendData);
+  connect(ui->sendMarkerButton, &QPushButton::clicked, readPort, &SerialPort::sendMarker);
+  connect(this, &MainWindow::openReadSerial, readPort, &SerialPort::open);
+  connect(this, &MainWindow::openWriteSerial, writePort, &SerialPort::open);
+  connect(this, &MainWindow::closeSerial, readPort, &SerialPort::close);
+  connect(ui->powerCheckbox, &QCheckBox::stateChanged, readPort, &SerialPort::setIsPowered);
+  connect(ui->deleteMarkerCheckbox, &QCheckBox::stateChanged, readPort, &SerialPort::setIsDeleteMarker);
+  connect(readPort, &SerialPort::sendToNext, this, &MainWindow::witeToNext);
 }
+
+
 void MainWindow::showStatusMessage(const QString& message) {
   status->setText(message);
 }

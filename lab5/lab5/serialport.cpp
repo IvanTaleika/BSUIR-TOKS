@@ -32,7 +32,7 @@ void SerialPort::readPackage() {
       }
     }
     if (!cachedFrame.isEmpty()) {
-      QSerialPort::write(cachedFrame);
+      emit sendToNext(cachedFrame);
       cachedFrame.clear();
     } else if (!sendingMessages.isEmpty()) {
       if (ac->isFrame) {
@@ -43,7 +43,7 @@ void SerialPort::readPackage() {
         } else {
           priority = ac->priority + 1;
           code(data);
-          QSerialPort::write(data);
+          emit sendToNext(data);
         }
       } else {
         writeFrame();
@@ -51,10 +51,11 @@ void SerialPort::readPackage() {
       }
     } else {
       code(data);
-      QSerialPort::write(data);
+      emit sendToNext(data);
     }
   } else {
-    QSerialPort::write(QSerialPort::readAll());
+    auto data = QSerialPort::readAll();
+    emit sendToNext(data);
   }
 }
 
@@ -101,7 +102,7 @@ void SerialPort::sendMarker() {
   AccessControl ac = {0, 0};
   QByteArray data((char*) &ac, sizeof(AccessControl));
   code(data);
-  QSerialPort::write(data);
+  emit sendToNext(data);
 }
 
 bool SerialPort::getIsDeleteMarker() const {
@@ -132,7 +133,7 @@ void SerialPort::writeFrame() {
   AccessControl ac = {priority, true};
   data.prepend((char*) &ac, sizeof(AccessControl));
   code(data);
-  QSerialPort::write(data);
+  emit sendToNext(data);
 }
 
 void SerialPort::addCrc(QByteArray& array) {

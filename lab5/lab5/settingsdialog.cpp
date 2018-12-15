@@ -20,6 +20,8 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
           this, &SettingsDialog::apply);
   connect(ui->serialPortInfoListBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           this, &SettingsDialog::showPortInfo);
+  connect(ui->serialPortInfoListBox_2, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+          this, &SettingsDialog::showPortInfo);
   connect(ui->baudRateBox,  static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           this, &SettingsDialog::checkCustomBaudRatePolicy);
   connect(ui->serialPortInfoListBox,  static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
@@ -121,13 +123,15 @@ void SettingsDialog::fillPortsInfo() {
          << (info.productIdentifier() ? QString::number(info.productIdentifier(), 16) : blankString);
 
     ui->serialPortInfoListBox->addItem(list.first(), list);
+    ui->serialPortInfoListBox_2->addItem(list.first(), list);
   }
-
+  ui->serialPortInfoListBox_2->addItem(tr("Custom"));
   ui->serialPortInfoListBox->addItem(tr("Custom"));
 }
 
 void SettingsDialog::updateSettings() {
   currentSettings.name = ui->serialPortInfoListBox->currentText();
+  currentSettings.name1 = ui->serialPortInfoListBox_2->currentText();
   if (ui->baudRateBox->currentIndex() == 4) {
     currentSettings.baudRate = ui->baudRateBox->currentText().toInt();
   } else {

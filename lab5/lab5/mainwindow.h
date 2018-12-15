@@ -24,16 +24,19 @@ class MainWindow : public QMainWindow {
 
  private slots:
   void openSerialPort();
+  void openPort(QSerialPort* port, QString name, SettingsDialog::Settings p);
   void closeSerialPort();
   void dataRead(QByteArray data);
   void dataSent(QByteArray data);
   void showMessage(QString message);
   void handleError(QSerialPort::SerialPortError error);
   void sendData();
+  void witeToNext(QByteArray data);
 
  signals:
   void sendingData(QByteArray data, int destinationAddress, int flags);
-  void openSerial(QIODevice::OpenMode mode);
+  void openReadSerial(QIODevice::OpenMode mode);
+  void openWriteSerial(QIODevice::OpenMode mode);
   void closeSerial();
 
  private:
@@ -47,7 +50,8 @@ class MainWindow : public QMainWindow {
   Ui::MainWindow* ui;
   QLabel* status;
   SettingsDialog* settings;
-  SerialPort* serial;
+  SerialPort* readPort;
+  QSerialPort* writePort;
   QThread serialThread;
 };
 #endif // MAINWINDOW_H
