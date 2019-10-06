@@ -37,6 +37,7 @@ void SerialPort::readPackage() {
     } else if (!sendingMessages.isEmpty()) {
       if (ac->isFrame) {
         if (priority > ac->priority) {
+          code(data);
           cachedFrame.append(data);
           writeFrame();
           priority = 1;
